@@ -129,7 +129,7 @@ def utility(board):
     return 0
 
 
-def minimax(board, return_value=False):
+def minimax(board, alpha_beta=None, return_value=False):
     """
     Returns the optimal action for the current player on the board.
 
@@ -172,18 +172,25 @@ def minimax(board, return_value=False):
     
     p = player(_board)
     actions_to_play = actions(_board)
-    func = max if p == X else min
+    f = max if p == X else min
+    n_f = min if p == X else max
 
-    values_by_action = []  
-    for i, action in enumerate(actions_to_play): 
+    check_alpha_beta_pruning = lambda value: alpha_beta<=value if p == X else alpha_beta>=value 
+
+    values_by_action = []
+    for action in actions_to_play: 
         result_of_action = result(_board, action)
-        v = minimax(result_of_action, return_value=True)
+        next_alpha_beta = None if not len(values_by_action) else n_f(values_by_action, key=lambda x: x['value'])['value']
+        v = minimax(result_of_action, alpha_beta=next_alpha_beta, return_value=True)
         values_by_action.append({ 'action': action, 'value': v })
+
+        if alpha_beta is not None and check_alpha_beta_pruning(v):
+            break
     
     if return_value:
         if len(values_by_action) > 0:
-            return func(values_by_action, key=lambda x: x['value'])['value']
+            return f(values_by_action, key=lambda x: x['value'])['value']
         return values_by_action[0]['value']
     
-    best_move = func(values_by_action, key=lambda x: x['value'])['action']
+    best_move = f(values_by_action, key=lambda x: x['value'])['action']
     return best_move
