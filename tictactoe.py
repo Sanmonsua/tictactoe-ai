@@ -129,7 +129,7 @@ def utility(board):
     return 0
 
 
-def minimax(board, alpha_beta=None, return_value=False):
+def minimax(board, alpha=None, beta=None, return_value=False):
     """
     Returns the optimal action for the current player on the board.
 
@@ -166,31 +166,49 @@ def minimax(board, alpha_beta=None, return_value=False):
         return *v*
     """
 
+    def __return(options, f):
+        if return_value:
+            if len(options) > 0:
+                return f(options, key=lambda x: x['value'])['value']
+            return options[0]['value']
+        
+        best_move = f(options, key=lambda x: x['value'])['action']
+        return best_move
+
+
     _board = [[element for element in row] for row in board]
     if terminal(_board):
         return utility(_board)
     
     p = player(_board)
-    actions_to_play = actions(_board)
-    f = max if p == X else min
-    n_f = min if p == X else max
-
-    check_alpha_beta_pruning = lambda value: alpha_beta<=value if p == X else alpha_beta>=value 
-
     values_by_action = []
-    for action in actions_to_play: 
-        result_of_action = result(_board, action)
-        next_alpha_beta = None if not len(values_by_action) else n_f(values_by_action, key=lambda x: x['value'])['value']
-        v = minimax(result_of_action, alpha_beta=next_alpha_beta, return_value=True)
-        values_by_action.append({ 'action': action, 'value': v })
+    actions_to_play = actions(_board)
 
-        if alpha_beta is not None and check_alpha_beta_pruning(v):
-            break
     
-    if return_value:
-        if len(values_by_action) > 0:
-            return f(values_by_action, key=lambda x: x['value'])['value']
-        return values_by_action[0]['value']
+    if p == X:
+        alpha = None
+        for action in actions_to_play: 
+            result_of_action = result(_board, action)
+            
+            eva = minimax(result_of_action, alpha=alpha, return_value=True)
+            values_by_action.append({ 'action': action, 'value': eva })
+
+            alpha = max(values_by_action, key=lambda x: x['value'])['value']
+            if beta is not None and eva>beta:
+               break
+        
+        return __return(values_by_action, max)
+    else:
+        beta = None
+        for action in actions_to_play: 
+            result_of_action = result(_board, action)
+            
+            eva = minimax(result_of_action, beta=beta, return_value=True)
+            values_by_action.append({ 'action': action, 'value': eva })
+
+            beta = min(values_by_action, key=lambda x: x['value'])['value']
+            if alpha is not None and eva<alpha:
+               break
     
-    best_move = f(values_by_action, key=lambda x: x['value'])['action']
-    return best_move
+        return __return(values_by_action, min)
+    
