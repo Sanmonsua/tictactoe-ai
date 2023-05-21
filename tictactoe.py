@@ -166,7 +166,7 @@ def minimax(board, return_value=False):
         return *v*
     """
 
-    _board = [[element for element in row] for row in _board]
+    _board = [[element for element in row] for row in board]
     if terminal(_board):
         return utility(_board)
     
