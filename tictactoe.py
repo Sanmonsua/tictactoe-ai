@@ -38,11 +38,11 @@ def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
     """
-    moves_to_play = []
+    moves_to_play = set()
     for i, row in enumerate(board):
         for j, cell in enumerate(row):
             if cell is EMPTY:
-                moves_to_play.append((i, j))
+                moves_to_play.add((i, j))
 
     return moves_to_play
 
@@ -53,6 +53,9 @@ def result(board, action):
     """
     p = player(board)
     i, j = action
+
+    if i < 0 or i > 2 or j < 0 or j > 2:
+        raise ValueError(f"Invalid action {action} for board \n {board}")
     
     new_board = [[element for element in row] for row in board]
     if new_board[i][j] is not EMPTY:
@@ -177,6 +180,8 @@ def minimax(board, alpha=None, beta=None, return_value=False):
 
 
     _board = [[element for element in row] for row in board]
+    if terminal(_board) and not return_value:
+        return None
     if terminal(_board):
         return utility(_board)
     
